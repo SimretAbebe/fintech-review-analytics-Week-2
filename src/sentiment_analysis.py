@@ -1,67 +1,67 @@
 import pandas as pd
 from transformers import pipeline
 import os
+import logging
+
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def run_sentiment_analysis():
+    """
+    Perform sentiment scoring using DistilBERT.
+    Logic: Converts binary model output (Positive/Negative) into a continuous 
+    score to allow for fine-grained analysis.
+    """
     input_path = 'data/cleaned_reviews.csv'
     output_path = 'data/sentiment_reviews.csv'
     
     if not os.path.exists(input_path):
-        print(f"Error: {input_path} not found.")
+        logging.error(f"Input file {input_path} missing. Run preprocessing first.")
         return
 
-    df = pd.read_csv(input_path)
-    print(f"Loaded {len(df)} reviews for sentiment analysis...")
+    try:
+        df = pd.read_csv(input_path)
+        logging.info(f"Loaded {len(df)} reviews for sentiment analysis.")
 
-    # Initialize the pipeline
-    sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+        sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
 
-    results = []
-    print("Scoring sentiment (with positivity normalization)...")
-    for i, text in enumerate(df['review']):
-        try:
-            result = sentiment_pipeline(str(text)[:512])[0]
-            label = result['label']
-            confidence = result['score']
-            
-          
-            positivity_score = confidence if label == 'POSITIVE' else (1 - confidence)
-    
-            if 0.45 <= positivity_score <= 0.55:
-                final_label = 'NEUTRAL'
-            elif positivity_score > 0.55:
-                final_label = 'POSITIVE'
-            else:
-                final_label = 'NEGATIVE'
+        results = []
+        for i, text in enumerate(df['review']):
+            try:
+                
+                result = sentiment_pipeline(str(text)[:512])[0]
+                label = result['label']
+                conf = result['score']
+                
+               
+                pos_score = conf if label == 'POSITIVE' else (1 - conf)
+                
+              
+                if 0.45 <= pos_score <= 0.55:
+                    final_label = 'NEUTRAL'
+                elif pos_score > 0.55:
+                    final_label = 'POSITIVE'
+                else:
+                    final_label = 'NEGATIVE'
 
-            results.append({
-                'label': final_label,
-                'score': positivity_score
-            })
-        except Exception:
-            results.append({'label': 'NEUTRAL', 'score': 0.5})
-            
-        if (i + 1) % 100 == 0:
-            print(f"Processed {i + 1}/{len(df)} reviews...")
+                results.append({'label': final_label, 'score': pos_score})
+            except Exception as e:
+                logging.warning(f"Failed to score review index {i}: {e}")
+                results.append({'label': 'NEUTRAL', 'score': 0.5})
 
-    # Update dataframe
-    results_df = pd.DataFrame(results)
-    df['sentiment_label'] = results_df['label']
-    df['sentiment_score'] = results_df['score']
+            if (i + 1) % 200 == 0:
+                logging.info(f"Progress: {i + 1}/{len(df)} reviews processed.")
 
-    df.to_csv(output_path, index=False)
-    print(f"Analysis complete! Saved to {output_path}")
+        
+        res_df = pd.DataFrame(results)
+        df['sentiment_label'] = res_df['label']
+        df['sentiment_score'] = res_df['score']
 
-  
-    print("\n" + "="*40)
-    print("FINAL TASK 2 RESULTS (NORMALIZED)")
-    print("="*40)
-    print("\nMean Positivity Score by Bank (0=Neg, 1=Pos):")
-    print(df.groupby('bank')['sentiment_score'].mean().sort_values(ascending=False))
-    
-    print("\nMean Positivity Score by Star Rating:")
-    print(df.groupby('rating')['sentiment_score'].mean())
-    print("="*40)
+        df.to_csv(output_path, index=False)
+        logging.info(f"Sentiment analysis complete. Results saved to {output_path}")
+
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
 
 if __name__ == "__main__":
     run_sentiment_analysis()

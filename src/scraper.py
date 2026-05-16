@@ -1,49 +1,55 @@
+from google_play_scraper import Sort, reviews
 import pandas as pd
-from google_play_scraper import Sort, reviews, app
 import os
+import logging
 
-# Define the banks and their Play Store App IDs
-BANKS = {
-    "Commercial Bank of Ethiopia": "com.combanketh.mobilebanking",
-    "Bank of Abyssinia": "com.bankofabyssinia.boamobile.retail",
-    "Dashen Bank": "com.dashen.dashensuperapp"
-}
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def scrape_bank_reviews():
-    all_reviews = []
-    
-    for bank_name, app_id in BANKS.items():
-        print(f"Scraping reviews for {bank_name}...")
-        
-        # Scrape reviews
-        # Fetched 500 to be safe and ensure I met the 400+ requirement
-        result, _ = reviews(
-            app_id,
-            lang='en', # Language of reviews
-            country='us', # Country to fetch from
-            sort=Sort.NEWEST, # Get the latest reviews
-            count=500 
-        )
-        
-        # Add bank name to each review and store
-        for r in result:
-            r['bank_name'] = bank_name
-            r['source'] = 'Google Play'
-            all_reviews.append(r)
-            
-        print(f"Successfully collected {len(result)} reviews for {bank_name}.")
+    """
+    Scrape reviews for CBE, BOA, and Dashen Bank.
+    Strategy: Target 500 reviews per bank to ensure we meet the 1,200+ total 
+    requirement for the project while staying within rate limits.
+    """
+    apps = {
+        'Commercial Bank of Ethiopia': 'com.cbe.cbebirr',
+        'Bank of Abyssinia': 'com.boa.banking',
+        'Dashen Bank': 'com.dashen.amole'
+    }
 
-    # Convert to DataFrame
-    df = pd.DataFrame(all_reviews)
+    all_reviews = []
+    raw_dir = 'data/raw'
     
-    # Ensure the data/raw directory exists
-    os.makedirs('data/raw', exist_ok=True)
-    
-    # Save to CSV
-    output_path = 'data/raw/raw_reviews.csv'
-    df.to_csv(output_path, index=False)
-    print(f"\nScraping complete! Total reviews collected: {len(df)}")
-    print(f"Data saved to: {output_path}")
+ 
+    if not os.path.exists(raw_dir):
+        os.makedirs(raw_dir)
+        logging.info(f"Created directory: {raw_dir}")
+
+    for bank_name, app_id in apps.items():
+        logging.info(f"Scraping reviews for {bank_name}...")
+        try:
+            result, _ = reviews(
+                app_id,
+                lang='en',
+                country='us',
+                sort=Sort.NEWEST,
+                count=500
+            )
+            for r in result:
+                r['bank'] = bank_name
+            all_reviews.extend(result)
+            logging.info(f"Successfully collected {len(result)} reviews for {bank_name}.")
+        except Exception as e:
+            logging.error(f"Failed to scrape data for {bank_name} ({app_id}): {e}")
+
+    if all_reviews:
+        df = pd.DataFrame(all_reviews)
+        output_file = os.path.join(raw_dir, 'raw_reviews.csv')
+        df.to_csv(output_file, index=False)
+        logging.info(f"Scraping complete! Total reviews collected: {len(all_reviews)}")
+        logging.info(f"Raw data saved to: {output_file}")
+    else:
+        logging.warning("No reviews were collected. Check network connection or app IDs.")
 
 if __name__ == "__main__":
     scrape_bank_reviews()
