@@ -22,15 +22,16 @@ fintech-review-analytics/
 │   ├── plots/           # Generated visualizations
 │   └── analyzed_reviews.csv # Final processed data
 ├── notebooks/           # Research and EDA notebooks
+│   └── task4_insights.ipynb  # Task 4: Visualizations
 ├── scripts/             # Utility scripts
 ├── src/                 # Core source code
 │   ├── scraper.py           # Task 1: Data collection
 │   ├── preprocessing.py     # Task 1: Data cleaning
 │   ├── sentiment_analysis.py # Task 2: Sentiment scoring
 │   ├── thematic_analysis.py  # Task 2: Theme extraction
-│   └── visualizations.py     # Task 2: Interim plots
 ├── tests/               # Unit and sanity tests
 ├── requirements.txt      # Dependencies
+├── final_report.md       # Task 4: Final Business Report
 └── README.md
 ```
 
@@ -59,9 +60,6 @@ python src/preprocessing.py
 # Task 2: Analyze Sentiment and Themes
 python src/sentiment_analysis.py
 python src/thematic_analysis.py
-
-# Task 2: Generate Visualizations
-python src/visualizations.py
 ```
 
 ### 3. Database Integration (Task 3)
@@ -69,7 +67,10 @@ python src/visualizations.py
 python src/database_manager.py
 ```
 
-### 4. Running Tests
+### 4. Visualizations & Reporting (Task 4)
+Open `notebooks/task4_insights.ipynb` in your preferred Jupyter environment (e.g., VS Code) to generate the final plots. The final business insights are documented in `final_report.md`.
+
+### 5. Running Tests
 ```bash
 # Run sanity tests to verify environment and data
 python -m unittest tests/test_pipeline.py
@@ -81,6 +82,7 @@ python -m unittest tests/test_pipeline.py
 *   **Task 1:** 1,500 reviews collected and preprocessed with 100% data integrity.
 *   **Task 2:** Sentiment and Thematic analysis complete with automated visualizations.
 *   **Task 3:** PostgreSQL relational schema designed (`scripts/schema.sql`). Automated Python script (`psycopg2`) written to insert and structure the cleaned data. SQL queries written to verify data integrity (`scripts/verify_data.sql`).
+*   **Task 4:** Advanced visualizations implemented in Jupyter Notebook (`notebooks/task4_insights.ipynb`)
 
 ---
 
