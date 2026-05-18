@@ -72,7 +72,8 @@ def run_thematic_analysis():
         logging.info(f"Top keywords identified: {', '.join(top_keywords)}")
 
       
-        result_df = df[['review', 'bank', 'sentiment_label', 'sentiment_score', 'identified_theme']]
+        # Save with clean column structure, ensuring all necessary DB columns are preserved
+        result_df = df[['review', 'rating', 'date', 'bank', 'sentiment_label', 'sentiment_score', 'identified_theme']]
         result_df.to_csv(output_path, index_label='review_id')
         logging.info(f"Thematic analysis complete. Data saved to {output_path}")
 

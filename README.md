@@ -64,7 +64,12 @@ python src/thematic_analysis.py
 python src/visualizations.py
 ```
 
-### 3. Running Tests
+### 3. Database Integration (Task 3)
+```bash
+python src/database_manager.py
+```
+
+### 4. Running Tests
 ```bash
 # Run sanity tests to verify environment and data
 python -m unittest tests/test_pipeline.py
@@ -75,12 +80,13 @@ python -m unittest tests/test_pipeline.py
 ## Progress Summary
 *   **Task 1:** 1,500 reviews collected and preprocessed with 100% data integrity.
 *   **Task 2:** Sentiment and Thematic analysis complete with automated visualizations.
+*   **Task 3:** PostgreSQL relational schema designed (`scripts/schema.sql`). Automated Python script (`psycopg2`) written to insert and structure the cleaned data. SQL queries written to verify data integrity (`scripts/verify_data.sql`).
 
 ---
 
 ## Technologies Used
+*   **Database:** PostgreSQL, `psycopg2`
 *   **NLP:** `transformers` (DistilBERT), `spaCy`
 *   **Analysis:** `pandas`, `scikit-learn`
 *   **Visualization:** `matplotlib`, `seaborn`
 *   **CI/CD:** GitHub Actions
-
