@@ -13,7 +13,7 @@ Purpose:
           model would just learn to read the rating instead of learning
           from the review's language).
         - "review" (raw text): not used directly in this simple version.
-          I used derived signals instead (sentiment_score, theme,
+          We use derived signals instead (sentiment_score, theme,
           word count), which is a common, defensible modeling choice
           for a first version.
         - "review_id", "date": identifiers/metadata, not predictive
@@ -33,7 +33,7 @@ Input:
 Output:
     data/model_features.csv
     A single table containing X (all feature columns) and y
-    (is_high_risk), ready to be split into train/test sets on Day 2 plan.
+    (is_high_risk), ready to be split into train/test sets on Day 2.
 """
 
 from pathlib import Path
@@ -47,7 +47,7 @@ OUTPUT_PATH = Path("data/model_features.csv")
 # "rating" is excluded specifically to avoid leakage (see module docstring).
 EXCLUDED_COLUMNS = ["review_id", "review", "date", "rating"]
 
-# The column I am trying to predict.
+# The column we are trying to predict.
 TARGET_COLUMN = "is_high_risk"
 
 # Columns that need one-hot encoding (turning categories into 0/1 columns).
@@ -84,7 +84,11 @@ def build_feature_table(df: pd.DataFrame) -> pd.DataFrame:
     df["is_short_review"] = df["is_short_review"].astype(int)
 
     # One-hot encode theme and bank: each category becomes its own 0/1 column.
-    df = pd.get_dummies(df, columns=CATEGORICAL_COLUMNS, prefix=CATEGORICAL_COLUMNS)
+    # dtype=int (rather than the pandas default of True/False) keeps every
+    # feature column numeric, which downstream tools like SHAP expect.
+    df = pd.get_dummies(
+        df, columns=CATEGORICAL_COLUMNS, prefix=CATEGORICAL_COLUMNS, dtype=int
+    )
 
     return df
 
