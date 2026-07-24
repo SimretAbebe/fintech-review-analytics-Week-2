@@ -1,9 +1,9 @@
 """
-Day 1 - Build the model-ready feature matrix (X) and target (y).
+Day 1/3 - Build the model-ready feature matrix (X) and target (y).
 
 Purpose:
-    Turn labeled_reviews.csv into two things a machine learning model can
-    actually train on:
+    Turn labeled_reviews_multilingual_fixed.csv into two things a
+    machine learning model can actually train on:
         - X: a table of numeric input features
         - y: the target column, is_high_risk
 
@@ -12,46 +12,55 @@ Purpose:
           cannot also be an input feature - that would be leakage (the
           model would just learn to read the rating instead of learning
           from the review's language).
-        - "review" (raw text): not used directly in this simple version.
-          We use derived signals instead (sentiment_score, theme,
-          word count), which is a common, defensible modeling choice
-          for a first version.
+        - "review" / "translated_review" (raw text): not used directly
+          in this simple version. We use derived signals instead
+          (sentiment_score, theme, word count), which is a common,
+          defensible modeling choice for a first version.
         - "review_id", "date": identifiers/metadata, not predictive
           signals.
 
     What IS included, and why:
         - sentiment_score: how negative/positive the language is
+          (computed on the translated text for non-English reviews)
         - identified_theme (one-hot encoded): what the complaint is about
-        - review_word_count: how much the customer wrote
+        - review_word_count: how much the customer wrote, measured on
+          the translated (English) text so every row is comparable
         - is_short_review: flags low-information reviews
         - bank (one-hot encoded): allows the model to learn if risk
           patterns differ by bank
+        - detected_language (one-hot encoded): allows the model to
+          learn if risk patterns differ by language group
 
 Input:
-    data/labeled_reviews.csv
+    data/labeled_reviews_multilingual_fixed.csv
 
 Output:
     data/model_features.csv
     A single table containing X (all feature columns) and y
-    (is_high_risk), ready to be split into train/test sets on Day 2.
+    (is_high_risk), ready to be split into train/test sets.
 """
 
 from pathlib import Path
 
 import pandas as pd
 
-DATA_PATH = Path("data/labeled_reviews.csv")
+DATA_PATH = Path("data/labeled_reviews_multilingual_fixed.csv")
 OUTPUT_PATH = Path("data/model_features.csv")
 
-# Columns from labeled_reviews.csv that must NOT be used as model inputs.
-# "rating" is excluded specifically to avoid leakage (see module docstring).
-EXCLUDED_COLUMNS = ["review_id", "review", "date", "rating"]
+# Columns from labeled_reviews_multilingual_fixed.csv that must NOT be
+# used as model inputs. "rating" is excluded specifically to avoid
+# leakage (see module docstring). "review" is the original, possibly
+# non-English text - we use "translated_review" instead so every row is
+# analyzed on the same (English) footing.
+EXCLUDED_COLUMNS = ["review_id", "review", "translated_review", "date", "rating"]
 
 # The column we are trying to predict.
 TARGET_COLUMN = "is_high_risk"
 
 # Columns that need one-hot encoding (turning categories into 0/1 columns).
-CATEGORICAL_COLUMNS = ["identified_theme", "bank"]
+# detected_language is now included as a feature: language group may be
+# a genuinely useful signal for risk (e.g. support gaps by language).
+CATEGORICAL_COLUMNS = ["identified_theme", "bank", "detected_language"]
 
 
 def load_data(path: Path) -> pd.DataFrame:
@@ -74,6 +83,12 @@ def build_feature_table(df: pd.DataFrame) -> pd.DataFrame:
         column (is_high_risk).
     """
     df = df.copy()
+
+    # Recalculate word count using the TRANSLATED text, so an Amharic
+    # review and its English translation are measured on the same
+    # footing (word counts in different scripts/languages aren't
+    # directly comparable otherwise).
+    df["review_word_count"] = df["translated_review"].astype(str).str.split().str.len()
 
     # sentiment_label is dropped too: sentiment_score already captures
     # the same information numerically and more precisely.
