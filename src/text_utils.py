@@ -8,14 +8,11 @@ one place.
 
 import pandas as pd
 
-# A review shorter than this many words is considered "low-information"
-# (e.g. a single word, a username, a broken link) and is likely to confuse
-# the sentiment model.
-SHORT_REVIEW_WORD_THRESHOLD = 3
+from config import TEXT_CONFIG
 
 
 def flag_short_reviews(
-    df: pd.DataFrame, word_threshold: int = SHORT_REVIEW_WORD_THRESHOLD
+    df: pd.DataFrame, word_threshold: int = TEXT_CONFIG.short_review_word_threshold
 ) -> pd.DataFrame:
     """Add word-count and short-review flag columns to a reviews DataFrame.
 

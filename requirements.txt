@@ -17,6 +17,7 @@ cymem==2.0.13
 deep-translator==1.11.4
 defusedxml==0.7.1
 filelock==3.32.0
+flake8==7.1.1
 fonttools==4.63.0
 fsspec==2026.6.0
 google-play-scraper==1.2.7
@@ -29,7 +30,6 @@ huggingface_hub==1.24.0
 idna==3.18
 Jinja2==3.1.6
 joblib==1.5.3
-joLib==0.0.1
 kiwisolver==1.5.0
 llvmlite==0.48.0
 markdown-it-py==4.2.0
@@ -52,6 +52,7 @@ pydantic==2.13.4
 pydantic_core==2.46.4
 Pygments==2.20.0
 pyparsing==3.3.2
+pytest==8.3.4
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 PyYAML==6.0.3

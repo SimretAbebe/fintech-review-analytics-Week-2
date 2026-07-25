@@ -22,11 +22,18 @@ Purpose:
 
 Tool choice - VADER instead of DistilBERT:
     The original project's brief allowed VADER as a lighter alternative
-    to the DistilBERT transformer model. I use VADER here specifically
-    because it has no heavy dependencies (DistilBERT requires the torch
+    to the DistilBERT transformer model. I used VADER here specifically
+    because it has no heavy dependencies (DistilBERT requires the torch 
     library, a multi-gigabyte install), while still being a legitimate,
     commonly used sentiment tool. This is documented as a deliberate
     trade-off, not an oversight.
+
+Theme classification:
+    A simple keyword-based classifier, matching the same five themes
+    used in the original project (Account Access, Transaction
+    Performance, UI & Design, Customer Support, Feature Request /
+    General), applied to the translated English text.
+
 Input:
     data/labeled_reviews_multilingual.csv
 
@@ -42,13 +49,10 @@ from pathlib import Path
 import pandas as pd
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-DATA_PATH = Path("data/labeled_reviews_multilingual.csv")
-OUTPUT_PATH = Path("data/labeled_reviews_multilingual_fixed.csv")
+from config import DATA_PATHS, RISK_LABEL_CONFIG
 
-# Same rule used in label_risk.py (Day 1) - kept identical here so the
-# is_high_risk label stays consistent across the whole dataset.
-HIGH_RISK_MAX_RATING = 2
-HIGH_RISK_THEMES = {"Account Access", "Transaction Performance"}
+DATA_PATH = DATA_PATHS.labeled_reviews_multilingual
+OUTPUT_PATH = DATA_PATHS.labeled_reviews_multilingual_fixed
 
 # Keyword groups for the simple theme classifier. A review is assigned
 # to the first theme whose keywords appear in its (translated) text;
@@ -146,8 +150,8 @@ def recalculate_risk_label(df: pd.DataFrame) -> pd.DataFrame:
     for non-English reviews have been corrected.
     """
     df = df.copy()
-    is_low_rating = df["rating"] <= HIGH_RISK_MAX_RATING
-    is_risky_theme = df["identified_theme"].isin(HIGH_RISK_THEMES)
+    is_low_rating = df["rating"] <= RISK_LABEL_CONFIG.max_rating
+    is_risky_theme = df["identified_theme"].isin(RISK_LABEL_CONFIG.risky_themes)
     df["is_high_risk"] = (is_low_rating & is_risky_theme).astype(int)
     return df
 
