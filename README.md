@@ -1,3 +1,4 @@
+![Tests](https://github.com/SimretAbebe/fintech-review-analytics-Week-2/actions/workflows/unittests.yml/badge.svg)
 # Fintech Review Analytics
 
 ## Project Overview

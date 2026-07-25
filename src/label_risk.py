@@ -4,7 +4,7 @@ Day 1 - Build the "is_high_risk" proxy target label.
 Purpose:
     The dataset has no ready-made "this customer is at risk of leaving"
     label - it does not exist in the raw data. This script creates one
-    using a rule I can defend: a review is labeled high-risk if it has
+    using a rule we can defend: a review is labeled high-risk if it has
     a low star rating AND its theme is one associated with serious,
     trust-breaking problems (account access or transaction failures),
     rather than minor annoyances (e.g. UI complaints or feature requests).
@@ -13,10 +13,11 @@ Purpose:
     The "rating" column is used ONLY here, to build the label. It must
     NOT be passed into the risk-prediction model later as an input
     feature, since that would let the model "cheat" by reading the
-    answer instead of learning from the review's language. 
+    answer instead of learning from the review's language. See
+    README / report for the full explanation.
 
 Input:
-    data/analyzed_reviews.csv
+    data/processed/analyzed_reviews.csv
 
 Output:
     data/processed/labeled_reviews.csv
@@ -30,6 +31,7 @@ import sys
 
 import pandas as pd
 
+from config import DATA_PATHS, RISK_LABEL_CONFIG
 from text_utils import flag_short_reviews
 
 # Windows terminals default to an older encoding (cp1252) that cannot
@@ -38,17 +40,8 @@ from text_utils import flag_short_reviews
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-DATA_PATH = Path("data/analyzed_reviews.csv")
-OUTPUT_PATH = Path("data/labeled_reviews.csv")
-
-# A rating at or below this value counts as "low" for the risk rule.
-HIGH_RISK_MAX_RATING = 2
-
-# Themes considered serious enough (trust/money related) to count toward
-# the high-risk label. Anything else (e.g. "UI & Design",
-# "Feature Request / General") is treated as a minor complaint, not a
-# churn/risk signal.
-HIGH_RISK_THEMES = {"Account Access", "Transaction Performance"}
+DATA_PATH = DATA_PATHS.analyzed_reviews
+OUTPUT_PATH = DATA_PATHS.labeled_reviews
 
 
 def load_data(path: Path) -> pd.DataFrame:
@@ -58,8 +51,8 @@ def load_data(path: Path) -> pd.DataFrame:
 
 def add_high_risk_label(
     df: pd.DataFrame,
-    max_rating: int = HIGH_RISK_MAX_RATING,
-    risky_themes: set[str] = HIGH_RISK_THEMES,
+    max_rating: int = RISK_LABEL_CONFIG.max_rating,
+    risky_themes: frozenset[str] = RISK_LABEL_CONFIG.risky_themes,
 ) -> pd.DataFrame:
     """Add the is_high_risk column using the rating + theme rule.
 
@@ -105,8 +98,8 @@ def summarize_label_balance(df: pd.DataFrame) -> None:
 def show_sample_examples(df: pd.DataFrame, n: int = 5) -> None:
     """Print a few example reviews from each class for a manual sanity check.
 
-    This is the step where I read the actual reviews and
-    confirms the labeling rule "makes sense" before I trust it enough
+    This is the step where a human (you) reads the actual reviews and
+    confirms the labeling rule "makes sense" before we trust it enough
     to train a model on it.
     """
     columns_to_show = ["review", "rating", "identified_theme", "is_high_risk"]
