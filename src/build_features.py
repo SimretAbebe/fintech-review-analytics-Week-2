@@ -40,6 +40,7 @@ Output:
     (is_high_risk), ready to be split into train/test sets.
 """
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -131,6 +132,18 @@ def main() -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     features_df.to_csv(OUTPUT_PATH, index=False)
     print(f"Saved model-ready feature table to {OUTPUT_PATH}")
+
+    # Save the exact list and order of feature columns (excluding the
+    # target). The dashboard needs this to build a matching feature
+    # vector for a brand-new review typed live - one-hot columns must
+    # line up exactly with what the model was trained on, in the same
+    # order, or scikit-learn will raise an error or silently misalign
+    # values.
+    feature_columns = [c for c in features_df.columns if c != TARGET_COLUMN]
+    columns_path = OUTPUT_PATH.parent / "feature_columns.json"
+    with open(columns_path, "w") as f:
+        json.dump(feature_columns, f, indent=2)
+    print(f"Saved feature column list to {columns_path}")
 
 
 if __name__ == "__main__":
