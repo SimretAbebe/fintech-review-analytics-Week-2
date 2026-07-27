@@ -1,5 +1,5 @@
 # Data and DB
-data/
+data/*
 *.csv
 *.db
 *.sqlite
@@ -15,4 +15,11 @@ venv/
 # IDE
 .vscode/
 .idea/
-models/
+
+# Model artifacts 
+models/*
+
+
+!data/labeled_reviews_multilingual_fixed.csv
+!data/feature_columns.json
+!models/risk_model.joblib

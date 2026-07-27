@@ -1,0 +1,16 @@
+[
+  "sentiment_score",
+  "review_word_count",
+  "is_short_review",
+  "identified_theme_Account Access",
+  "identified_theme_Customer Support",
+  "identified_theme_Feature Request / General",
+  "identified_theme_Transaction Performance",
+  "identified_theme_UI & Design",
+  "bank_Bank of Abyssinia",
+  "bank_Commercial Bank of Ethiopia",
+  "bank_Dashen Bank",
+  "detected_language_am",
+  "detected_language_en",
+  "detected_language_om"
+]
