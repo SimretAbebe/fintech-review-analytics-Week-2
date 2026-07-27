@@ -21,6 +21,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
+from chart_utils import render_value_counts_bar_chart
 from dashboard_utils import (
     BANKS,
     build_live_feature_vector,
@@ -31,10 +32,17 @@ from dashboard_utils import (
     load_model,
     load_reviews,
 )
+from tailwind_ui import (
+    render_explanation_cards,
+    render_header_banner,
+    render_language_badge,
+    render_metric_cards,
+    render_risk_verdict_card,
+)
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 st.set_page_config(
-    page_title="Ethiopian Bank Customer Review System",
+    page_title="Ethiopian Bank Review Intelligence",
     page_icon="",
     layout="wide",
 )
@@ -81,8 +89,21 @@ def explain_prediction_in_words(shap_row: pd.Series, top_n: int = 3) -> list[str
     return explanations
 
 
-st.title(" Ethiopian Bank Customer Review System")
-st.caption("CBE, Bank of Abyssinia, Dashen Bank - AI-powered risk detection with multilingual support")
+render_header_banner(
+    "Ethiopian Bank Customer Review Intelligence",
+    "CBE \u2022 Bank of Abyssinia \u2022 Dashen Bank \u2014 AI-powered risk detection with multilingual support",
+)
+
+df = get_reviews()
+
+with st.sidebar:
+    st.header("Filters")
+    st.caption("Applies to the Explore Reviews tab")
+    selected_banks = st.multiselect("Bank", options=sorted(df["bank"].unique()), default=list(df["bank"].unique()))
+    selected_languages = st.multiselect(
+        "Language", options=sorted(df["detected_language"].unique()), default=list(df["detected_language"].unique())
+    )
+    risk_filter = st.selectbox("Risk status", options=["All", "High-risk only", "Not high-risk only"])
 
 tab_explore, tab_try = st.tabs(["Explore Reviews", "Try It Yourself"])
 
@@ -90,17 +111,6 @@ tab_explore, tab_try = st.tabs(["Explore Reviews", "Try It Yourself"])
 # TAB 1: Explore existing reviews
 # ---------------------------------------------------------------------------
 with tab_explore:
-    df = get_reviews()
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        selected_banks = st.multiselect("Bank", options=sorted(df["bank"].unique()), default=list(df["bank"].unique()))
-    with col2:
-        selected_languages = st.multiselect(
-            "Language", options=sorted(df["detected_language"].unique()), default=list(df["detected_language"].unique())
-        )
-    with col3:
-        risk_filter = st.selectbox("Risk status", options=["All", "High-risk only", "Not high-risk only"])
 
     filtered = df[df["bank"].isin(selected_banks) & df["detected_language"].isin(selected_languages)]
     if risk_filter == "High-risk only":
@@ -108,22 +118,21 @@ with tab_explore:
     elif risk_filter == "Not high-risk only":
         filtered = filtered[filtered["is_high_risk"] == 0]
 
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Reviews shown", len(filtered))
-    m2.metric("High-risk", int(filtered["is_high_risk"].sum()))
-    m3.metric("Avg. rating", f"{filtered['rating'].mean():.2f}" if len(filtered) else "\u2013")
     non_english_count = int((filtered["detected_language"] != "en").sum())
-    m4.metric("Non-English reviews", non_english_count)
+    render_metric_cards([
+        ("Reviews shown", str(len(filtered))),
+        ("High-risk", str(int(filtered["is_high_risk"].sum()))),
+        ("Avg. rating", f"{filtered['rating'].mean():.2f}" if len(filtered) else "\u2013"),
+        ("Non-English reviews", str(non_english_count)),
+    ])
 
     st.divider()
 
     chart_col1, chart_col2 = st.columns(2)
     with chart_col1:
-        st.subheader("Theme distribution")
-        st.bar_chart(filtered["identified_theme"].value_counts())
+        render_value_counts_bar_chart(filtered["identified_theme"].value_counts(), "Theme distribution")
     with chart_col2:
-        st.subheader("Sentiment distribution")
-        st.bar_chart(filtered["sentiment_label"].value_counts())
+        render_value_counts_bar_chart(filtered["sentiment_label"].value_counts(), "Sentiment distribution")
 
     st.divider()
     st.subheader("Browse reviews")
@@ -178,7 +187,7 @@ with tab_try:
             theme = classify_theme_live(translated_text)
 
             language_names = {"en": "English", "am": "Amharic", "om": "Afaan Oromo"}
-            st.success(f"Detected language: **{language_names.get(detected_language, detected_language)}**")
+            render_language_badge(language_names.get(detected_language, detected_language))
 
             if detected_language != "en":
                 st.write(f"**Translated to English:** {translated_text}")
@@ -202,15 +211,11 @@ with tab_try:
             is_high_risk = risk_probability >= 0.5
 
             st.divider()
-            if is_high_risk:
-                st.error(f"**HIGH RISK** predicted risk probability: {risk_probability:.1%}")
-            else:
-                st.success(f"**NOT HIGH RISK** predicted risk probability: {risk_probability:.1%}")
+            render_risk_verdict_card(is_high_risk, risk_probability)
 
             explainer = get_shap_explainer(model)
             shap_values = explainer(feature_vector)
             shap_row = pd.Series(shap_values.values[0, :, 1], index=feature_columns)
 
             st.subheader("Why did the model decide this?")
-            for explanation in explain_prediction_in_words(shap_row):
-                st.write(f"- {explanation}")
+            render_explanation_cards(explain_prediction_in_words(shap_row))
