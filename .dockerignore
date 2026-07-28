@@ -1,0 +1,22 @@
+# This Dockerfile doesn't use a blanket "COPY . .", so this file mainly
+# protects against accidental future changes to the Dockerfile.
+
+venv/
+.venv/
+.git/
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+notebooks/
+tests/
+
+# Keep the raw/intermediate data files OUT of the image (large, and the
+# app doesn't need them) - but the Dockerfile explicitly COPYs the two
+# specific processed files it does need, which this pattern does not block.
+data/*
+!data/labeled_reviews_multilingual_fixed.csv
+!data/feature_columns.json
+
+models/*
+!models/risk_model.joblib

@@ -1,0 +1,12 @@
+# docker-compose lets us describe how to run our container(s) in one
+# file, instead of typing a long "docker run ..." command with lots of
+# flags every time. We only have one service (the dashboard), but this
+# still saves you from remembering port numbers and flags by hand.
+services:
+  dashboard:
+    build: .
+    ports:
+      # Maps port 8501 on YOUR machine to port 8501 INSIDE the
+      # container (left side = your machine, right side = container).
+      - "8501:8501"
+    restart: unless-stopped
