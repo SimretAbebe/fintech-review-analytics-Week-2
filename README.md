@@ -1,6 +1,6 @@
 ![Tests](https://github.com/SimretAbebe/fintech-review-analytics-Week-2/actions/workflows/unittests.yml/badge.svg)
 
-# Ethiopian Bank Customer Review Intelligence Platform
+# Ethiopian Bank Customer Review Platform
 
 An explainable AI system that predicts customer risk from Google Play Store reviews of Ethiopian banks (CBE, Bank of Abyssinia, Dashen Bank) — with native support for reviews written in English, Amharic, or Afaan Oromo.
 
