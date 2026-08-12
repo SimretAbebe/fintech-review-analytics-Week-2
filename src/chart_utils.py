@@ -14,9 +14,9 @@ import plotly.graph_objects as go
 import streamlit as st
 
 DARK_BG = "rgba(0,0,0,0)"  # transparent, so Streamlit's own dark theme shows through
-GRID_COLOR = "rgba(255,255,255,0.1)"
-TEXT_COLOR = "#e2e8f0"
-BAR_COLORS = ["#22d3ee", "#818cf8", "#e879f9", "#fb923c", "#34d399"]
+GRID_COLOR = "rgba(255,255,255,0.08)"
+TEXT_COLOR = "#f8fafc"
+BAR_COLORS = ["#3b82f6", "#2563eb", "#60a5fa", "#1d4ed8", "#93c5fd"]
 
 
 def render_value_counts_bar_chart(value_counts: pd.Series, title: str) -> None:
